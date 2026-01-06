@@ -1,70 +1,157 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Page configuration
-st.set_page_config(page_title="20 Wheels Challenge", layout="centered")
+st.set_page_config(page_title="8-Segment Wheel", layout="wide")
 
-st.title("🎡 Scientist Wheel Challenge")
+# CSS වලින් මුළු Screen එකම Cover වන විදිහට සකස් කිරීම
+st.markdown("""
+    <style>
+    .main { background-color: #121212; }
+    iframe { width: 100% !important; height: 90vh !important; border: none; }
+    </style>
+    """, unsafe_allow_state_usage=True)
 
-# රෝද 20 සඳහා දත්ත (Data for 20 Wheels)
-if 'current_wheel' not in st.session_state:
-    st.session_state.current_wheel = 1
+# තීරු 8 සඳහා වර්ණ සහ දත්ත
+html_code = """
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { background: #121212; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; font-family: sans-serif; }
+        
+        .game-container { position: relative; text-align: center; }
 
-# මෙතනට ඔයාගේ විද්‍යාඥයින් 20 දෙනාගේ නම් සහ Options දාන්න
-wheel_data = [
-    {"name": "EINSTEIN", "opts": ["NEWTON", "EINSTEIN", "TESLA", "CURIE"], "correct": 1},
-    {"name": "NEWTON", "opts": ["GALILEO", "PASTEUR", "NEWTON", "DARWIN"], "correct": 2},
-    {"name": "TESLA", "opts": ["TESLA", "EDISON", "BELL", "BOYLE"], "correct": 0},
-    # ... තව 17ක් මේ විදියටම ලැයිස්තුවට එකතු කරන්න
-]
+        /* රෝදය ඉස්සරහට එන Animation එක */
+        .wheel-box {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            animation: slideIn 1s ease-out;
+        }
 
-# HTML/JavaScript Code එක (Wheel Logic එක ඇතුළුව)
-html_code = f"""
-<div id="game-container" style="text-align:center; color:white; font-family:sans-serif;">
-    <h3 id="level-txt">Wheel: {st.session_state.current_wheel} / 20</h3>
-    <div style="position:relative; width:300px; height:300px; margin:auto;">
-        <div id="wheel" style="width:100%; height:100%; border-radius:50%; border:5px solid white; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#ff3b30 0% 25%, #4cd964 25% 50%, #ffcc00 50% 75%, #5ac8fa 75% 100%);"></div>
-        <div id="center-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(0); background:white; color:black; padding:10px; border-radius:10px; font-weight:bold; transition:0.5s; z-index:10;">{wheel_data[st.session_state.current_wheel-1]['name']}</div>
-        <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:20px solid gold;"></div>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 10px solid gold;
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+            background: conic-gradient(
+                #ff3b30 0deg 45deg, 
+                #4cd964 45deg 90deg, 
+                #ffcc00 90deg 135deg, 
+                #5ac8fa 135deg 180deg,
+                #ff9500 180deg 225deg,
+                #af52de 225deg 270deg,
+                #5856d6 270deg 315deg,
+                #ff2d55 315deg 360deg
+            );
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);
+        }
+
+        /* මැද ඇති නම */
+        .center-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            color: black;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            z-index: 20;
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid gold;
+        }
+
+        .center-text.active { transform: translate(-50%, -50%) scale(1); }
+
+        .pointer {
+            position: absolute;
+            top: -20px; left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 40px solid gold;
+            z-index: 30;
+        }
+
+        .btn-container { margin-top: 30px; }
+        button {
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .spin-btn { background: gold; color: black; }
+        .next-btn { background: #4cd964; color: white; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <div id="wheel-wrapper" class="wheel-box">
+        <div class="pointer"></div>
+        <div id="wheel" class="wheel"></div>
+        <div id="name-display" class="center-text">SCIENTIST NAME</div>
     </div>
-    <br>
-    <button id="spin-btn" onclick="spin()" style="padding:10px 30px; border-radius:20px; border:none; background:gold; font-weight:bold; cursor:pointer;">SPIN WHEEL</button>
+
+    <div class="btn-container">
+        <button id="spin-btn" class="spin-btn" onclick="spinWheel()">SPIN</button>
+        <button id="next-btn" class="next-btn" onclick="nextLevel()">NEXT WHEEL →</button>
+    </div>
 </div>
 
 <script>
     let rotation = 0;
-    function spin() {{
+    let currentLevel = 0;
+    
+    const data = [
+        "ALBERT EINSTEIN", "ISAAC NEWTON", "NIKOLA TESLA", "MARIE CURIE",
+        "GALILEO GALILEI", "CHARLES DARWIN", "LOUIS PASTEUR", "NIELS BOHR"
+    ];
+
+    function spinWheel() {
         document.getElementById('spin-btn').style.display = 'none';
-        rotation += Math.floor(2000 + Math.random() * 2000);
-        document.getElementById('wheel').style.transform = "rotate(" + rotation + "deg)";
-        
-        setTimeout(() => {{
-            document.getElementById('center-text').style.transform = "translate(-50%, -50%) scale(1)";
-            window.parent.postMessage({{type: 'wheel_stopped'}}, '*');
-        }}, 4100);
-    }}
+        let extraDeg = 1800 + Math.random() * 2000;
+        rotation += extraDeg;
+        document.getElementById('wheel').style.transform = `rotate(${rotation}deg)`;
+
+        setTimeout(() => {
+            let display = document.getElementById('name-display');
+            display.innerText = data[currentLevel];
+            display.classList.add('active');
+            document.getElementById('next-btn').style.display = 'inline-block';
+        }, 4100);
+    }
+
+    function nextLevel() {
+        currentLevel++;
+        if (currentLevel >= data.length) currentLevel = 0; // Restart if finished
+
+        // රෝදය ඉවතට ගොස් නැවත එන Animation එක
+        let wrapper = document.getElementById('wheel-wrapper');
+        wrapper.style.animation = 'none';
+        void wrapper.offsetWidth; // Trigger reflow
+        wrapper.style.animation = 'slideIn 1s ease-out';
+
+        // Reset UI
+        document.getElementById('name-display').classList.remove('active');
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('spin-btn').style.display = 'inline-block';
+    }
 </script>
+</body>
+</html>
 """
 
-# HTML එක Display කිරීම
-components.html(html_code, height=450)
-
-# Options පෙන්වීම සඳහා Streamlit Buttons
-current_data = wheel_data[st.session_state.current_wheel - 1]
-
-st.write("### Choose the Correct Name:")
-cols = st.columns(2)
-for i, opt in enumerate(current_data['opts']):
-    with cols[i % 2]:
-        if st.button(opt, key=f"btn_{st.session_state.current_wheel}_{i}"):
-            if i == current_data['correct']:
-                st.success("Correct!")
-                if st.button("Next Wheel ➡️"):
-                    if st.session_state.current_wheel < 20:
-                        st.session_state.current_wheel += 1
-                        st.rerun()
-                    else:
-                        st.balloons()
-                        st.write("Congratulations! You finished all 20!")
-            else:
-                st.error("Wrong! Try again.")
+components.html(html_code, height=800)
