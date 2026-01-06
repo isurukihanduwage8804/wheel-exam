@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # Page configurations
-st.set_page_config(page_title="isuru_wheel - නිපැයුම් රෝදය", layout="wide")
+st.set_page_config(page_title="නිපැයුම් රෝදය", layout="wide")
 
 st.markdown("""
     <style>
@@ -32,7 +32,6 @@ html_code = """
             border-top: 40px solid gold; z-index: 100;
         }
 
-        /* රෝදය මැද පෙනෙන කොටස */
         .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 22px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 220px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .center-text.active { transform: translate(-50%, -50%) scale(1); }
 
@@ -43,6 +42,7 @@ html_code = """
         .spin-btn { background: gold; color: black; }
         .next-btn { background: #4cd964; color: white; display: none; }
 
+        /* වම් පැත්තේ යටින් එන Notification Popup */
         #msg-popup {
             position: fixed; bottom: 20px; left: 20px; 
             padding: 15px 30px; border-radius: 15px; font-size: 22px; font-weight: bold;
@@ -59,7 +59,7 @@ html_code = """
 <div id="msg-popup"></div>
 
 <div class="game-container">
-    <div class="title">ඉසුරුගේ නිපැයුම් රෝදය</div>
+    <div class="title">නිපැයුම් රෝදය</div>
     <div style="font-size: 18px; color: #aaa; margin-bottom: 20px;">ප්‍රශ්නය <span id="cur-lvl">1</span> / 20</div>
     
     <div id="wheel-wrapper" class="wheel-box">
