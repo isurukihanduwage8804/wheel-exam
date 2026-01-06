@@ -42,12 +42,14 @@ html_code = """
         .spin-btn { background: gold; color: black; }
         .next-btn { background: #4cd964; color: white; display: none; }
 
+        /* වම් පැත්තේ යටට මාරු කළ පණිවිඩ පුවරුව (Bottom Left) */
         #msg-popup {
-            position: fixed; top: 20%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            padding: 20px 40px; border-radius: 15px; font-size: 24px; font-weight: bold;
-            z-index: 1000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: fixed; bottom: 20px; left: 20px; 
+            padding: 15px 30px; border-radius: 15px; font-size: 22px; font-weight: bold;
+            z-index: 1000; transform: translateY(100px); transition: 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        #msg-popup.show { transform: translate(-50%, -50%) scale(1); }
+        #msg-popup.show { transform: translateY(0); }
 
         .score-board { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 15px; border: 2px solid gold; font-size: 24px; color: gold; font-weight: bold; }
     </style>
@@ -113,7 +115,7 @@ html_code = """
         popup.innerText = text;
         popup.style.background = (type === 'success') ? '#2ecc71' : '#e74c3c';
         popup.classList.add('show');
-        setTimeout(() => popup.classList.remove('show'), 2000);
+        setTimeout(() => popup.classList.remove('show'), 3000);
     }
 
     function spinWheel() {
@@ -149,7 +151,7 @@ html_code = """
         currentLevel++;
         if(currentLevel >= gameData.length) {
             showMsg("අවසන්! ලකුණු: " + totalScore, "success");
-            setTimeout(() => location.reload(), 3000);
+            setTimeout(() => location.reload(), 4000);
             return;
         }
         document.getElementById('cur-lvl').innerText = (currentLevel + 1);
