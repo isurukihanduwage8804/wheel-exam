@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Invention Quiz Wheel", layout="wide")
+st.set_page_config(page_title="විද්‍යාත්මක සොයාගැනීම් - රෝදය", layout="wide")
 
 st.markdown("""
     <style>
@@ -12,7 +12,7 @@ st.markdown("""
 
 html_code = """
 <!DOCTYPE html>
-<html>
+<html lang="si">
 <head>
     <style>
         body { background: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; font-family: sans-serif; }
@@ -24,57 +24,76 @@ html_code = """
             background: conic-gradient(#ff3b30 0deg 45deg, #4cd964 45deg 90deg, #ffcc00 90deg 135deg, #5ac8fa 135deg 180deg, #ff9500 180deg 225deg, #af52de 225deg 270deg, #5856d6 270deg 315deg, #ff2d55 315deg 360deg);
         }
         .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 35px solid gold; z-index: 30; }
-        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 22px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 250px; text-align: center; }
+        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 20px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 250px; text-align: center; }
         .center-text.active { transform: translate(-50%, -50%) scale(1); }
         .options-grid { display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
         .opt-btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
         .spin-btn, .next-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin-top: 20px; }
         .spin-btn { background: gold; color: black; }
         .next-btn { background: #4cd964; color: white; display: none; }
+        
+        /* දකුණු පැත්තේ යටින් ඇති Score Board එක */
+        .score-board {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 2px solid gold;
+            font-size: 24px;
+            font-weight: bold;
+            color: gold;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
     </style>
 </head>
 <body>
 <div class="game-container">
-    <div style="font-size: 20px; color: gold; margin-bottom: 15px;">Wheel <span id="cur-lvl">1</span> of 20</div>
+    <div style="font-size: 20px; color: gold; margin-bottom: 15px;">රෝදය <span id="cur-lvl">1</span> / 20</div>
     <div id="wheel-wrapper" class="wheel-box">
         <div class="pointer"></div>
         <div id="wheel" class="wheel"></div>
         <div id="name-display" class="center-text"></div>
     </div>
-    <button id="spin-btn" class="spin-btn" onclick="spinWheel()">SPIN WHEEL</button>
+    <button id="spin-btn" class="spin-btn" onclick="spinWheel()">රෝදය කරකවන්න</button>
     <div id="options" class="options-grid">
         <button class="opt-btn" style="background:#e74c3c" onclick="checkAnswer(0)"></button>
         <button class="opt-btn" style="background:#2ecc71" onclick="checkAnswer(1)"></button>
         <button class="opt-btn" style="background:#f39c12" onclick="checkAnswer(2)"></button>
         <button class="opt-btn" style="background:#3498db" onclick="checkAnswer(3)"></button>
     </div>
-    <button id="next-btn" class="next-btn" onclick="nextLevel()">NEXT WHEEL →</button>
+    <button id="next-btn" class="next-btn" onclick="nextLevel()">මීළඟ රෝදය →</button>
 </div>
+
+<div class="score-board">ලකුණු: <span id="score">0</span></div>
 
 <script>
     let rotation = 0;
     let currentLevel = 0;
+    let totalScore = 0;
+
     const gameData = [
-        { inv: "TELEVISION", opts: ["Graham Bell", "J.L. Baird", "Edison", "Tesla"], correct: 1 },
-        { inv: "TELEPHONE", opts: ["Newton", "Einstein", "Graham Bell", "Galileo"], correct: 2 },
-        { inv: "LIGHT BULB", opts: ["Thomas Edison", "Tesla", "Faraday", "Bohr"], correct: 0 },
-        { inv: "PENICILLIN", opts: ["Pasteur", "Fleming", "Curie", "Darwin"], correct: 1 },
-        { inv: "RADIO", opts: ["Marconi", "Edison", "Bose", "Hertz"], correct: 0 },
-        { inv: "AEROPLANE", opts: ["Ford", "Wright Brothers", "Da Vinci", "Tesla"], correct: 1 },
-        { inv: "STEAM ENGINE", opts: ["James Watt", "Newton", "Stephenson", "Diesel"], correct: 0 },
-        { inv: "GRAVITY", opts: ["Einstein", "Newton", "Hawking", "Kepler"], correct: 1 },
-        { inv: "RADIUM", opts: ["Marie Curie", "Nobel", "Dalton", "Rutherford"], correct: 0 },
-        { inv: "TELESCOPE", opts: ["Galileo", "Hubble", "Copernicus", "Cassini"], correct: 0 },
-        { inv: "WORLD WIDE WEB", opts: ["Bill Gates", "Tim Berners-Lee", "Jobs", "Zuckerberg"], correct: 1 },
-        { inv: "MICROSCOPE", opts: ["Hooke", "Leeuwenhoek", "Janssen", "Pasteur"], correct: 2 },
-        { inv: "THERMOMETER", opts: ["Celsius", "Fahrenheit", "Galileo", "Kelvin"], correct: 1 },
-        { inv: "PRINTING PRESS", opts: ["Gutenberg", "Franklin", "Caxton", "Edison"], correct: 0 },
-        { inv: "DYNAMITE", opts: ["Alfred Nobel", "Tesla", "Oppenheimer", "Einstein"], correct: 0 },
-        { inv: "DNA STRUCTURE", opts: ["Mendel", "Darwin", "Watson & Crick", "Franklin"], correct: 2 },
-        { inv: "STETHOSCOPE", opts: ["Laennec", "Lister", "Jenner", "Harvey"], correct: 0 },
-        { inv: "X-RAY", opts: ["Roentgen", "Bequerel", "Curie", "Tesla"], correct: 0 },
-        { inv: "COMPUTER", opts: ["Alan Turing", "Charles Babbage", "Bill Gates", "Ada Lovelace"], correct: 1 },
-        { inv: "VACCINATION", opts: ["Edward Jenner", "Salk", "Pasteur", "Sabine"], correct: 0 }
+        { inv: "රූපවාහිනිය", opts: ["ග්‍රැහැම් බෙල්", "ජෝන් ලොගී බෙයාර්ඩ්", "තෝමස් එඩිසන්", "නිකොලා ටෙස්ලා"], correct: 1 },
+        { inv: "දුරකථනය", opts: ["අයිසැක් නිව්ටන්", "ඇල්බට් අයින්ස්ටයින්", "ඇලෙක්සැන්ඩර් ග්‍රැහැම් බෙල්", "ගැලීලියෝ"], correct: 2 },
+        { inv: "විදුලි බුබුල", opts: ["තෝමස් එඩිසන්", "නිකොලා ටෙස්ලා", "මයිකල් ෆැරඩේ", "නීල්ස් බෝර්"], correct: 0 },
+        { inv: "පෙනිසිලින්", opts: ["ලුවී පාස්චර්", "ඇලෙක්සැන්ඩර් ෆ්ලෙමින්", "මාරි කියුරි", "චාල්ස් ඩාවින්"], correct: 1 },
+        { inv: "ගුවන් විදුලිය (Radio)", opts: ["මාකෝනි", "එඩිසන්", "ජේ.සී. බෝස්", "හර්ට්ස්"], correct: 0 },
+        { inv: "ගුවන් යානය", opts: ["හෙන්රි ෆෝඩ්", "රයිට් සහෝදරයෝ", "ඩා වින්චි", "ටෙස්ලා"], correct: 1 },
+        { inv: "වාෂ්ප එන්ජිම", opts: ["ජේම්ස් වොට්", "නිව්ටන්", "ස්ටීවන්සන්", "ඩීසල්"], correct: 0 },
+        { inv: "ගුරුත්වාකර්ෂණය", opts: ["අයින්ස්ටයින්", "නිව්ටන්", "හෝකින්", "කෙප්ලර්"], correct: 1 },
+        { inv: "රේඩියම්", opts: ["මාරි කියුරි", "නොබෙල්", "ඩෝල්ටන්", "රදර්ෆර්ඩ්"], correct: 0 },
+        { inv: "දුරේක්ෂය", opts: ["ගැලීලියෝ", "හබල්", "කොපර්නිකස්", "කැසිනි"], correct: 0 },
+        { inv: "අන්තර්ජාලය (WWW)", opts: ["බිල් ගේට්ස්", "ටිම් බර්නර්ස් ලී", "ස්ටීව් ජොබ්ස්", "සකර්බර්ග්"], correct: 1 },
+        { inv: "අන්වීක්ෂය", opts: ["හුක්", "ලීවන්හුක්", "සෙකරියස් ජැන්සන්", "පාස්චර්"], correct: 2 },
+        { inv: "උෂ්ණත්වමානය", opts: ["සෙල්සියස්", "ෆැරන්හයිට්", "ගැලීලියෝ", "කෙල්වින්"], correct: 1 },
+        { inv: "මුද්‍රණ යන්ත්‍රය", opts: ["ගුටෙන්බර්ග්", "ෆ්‍රැන්ක්ලින්", "කැක්ස්ටන්", "එඩිසන්"], correct: 0 },
+        { inv: "ඩයිනමයිට්", opts: ["ඇල්ෆ්‍රඩ් නොබෙල්", "ටෙස්ලා", "ඕපන්හයිමර්", "අයින්ස්ටයින්"], correct: 0 },
+        { inv: "DNA ව්‍යුහය", opts: ["මෙන්ඩල්", "ඩාවින්", "වොට්සන් සහ ක්‍රික්", "ෆ්‍රැන්ක්ලින්"], correct: 2 },
+        { inv: "වෙද නළාව", opts: ["රෙනේ ලෙනෙක්", "ලිස්ටර්", "ජෙනර්", "හාවි"], correct: 0 },
+        { inv: "X-කිරණ", opts: ["රොන්ට්ජන්", "හෙන්රි බෙකරල්", "මාරි කියුරි", "ටෙස්ලා"], correct: 0 },
+        { inv: "පරිගණකය", opts: ["ටියුරින්", "චාල්ස් බැබේජ්", "බිල් ගේට්ස්", "ලව්ලේස්"], correct: 1 },
+        { inv: "එන්නත්කරණය", opts: ["එඩ්වඩ් ජෙනර්", "සෝල්ක්", "පාස්චර්", "සැබීන්"], correct: 0 }
     ];
 
     function spinWheel() {
@@ -82,7 +101,6 @@ html_code = """
         rotation += 1800 + Math.random() * 2000;
         document.getElementById('wheel').style.transform = "rotate(" + rotation + "deg)";
         setTimeout(() => {
-            // මෙතන තමයි කලින් වැරැද්ද තිබුණේ, දැන් කෙළින්ම Invention එක පේනවා
             document.getElementById('name-display').innerText = gameData[currentLevel].inv;
             document.getElementById('name-display').classList.add('active');
             showOptions();
@@ -98,6 +116,8 @@ html_code = """
 
     function checkAnswer(idx) {
         if(idx === gameData[currentLevel].correct) {
+            totalScore += 10;
+            document.getElementById('score').innerText = totalScore;
             document.getElementById('name-display').style.background = "#4cd964";
             document.getElementById('name-display').style.color = "white";
             document.getElementById('options').style.display = 'none';
@@ -107,7 +127,7 @@ html_code = """
 
     function nextLevel() {
         currentLevel++;
-        if(currentLevel >= gameData.length) { alert("Congratulations!"); location.reload(); return; }
+        if(currentLevel >= gameData.length) { alert("සුභ පැතුම්! ඔබ ලබාගත් ලකුණු ප්‍රමාණය: " + totalScore); location.reload(); return; }
         document.getElementById('cur-lvl').innerText = (currentLevel + 1);
         document.getElementById('next-btn').style.display = 'none';
         document.getElementById('spin-btn').style.display = 'inline-block';
