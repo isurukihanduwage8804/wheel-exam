@@ -1,126 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>20 Wheels Challenge</title>
-    <style>
-        body { font-family: 'Poppins', sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .game-box { text-align: center; width: 100%; max-width: 500px; }
-        
-        /* රෝදයේ සැකසුම */
-        .wheel-area { position: relative; width: 320px; height: 320px; margin: 0 auto 30px; }
-        .wheel { 
-            width: 100%; height: 100%; border-radius: 50%; border: 6px solid #fff;
-            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
-            background: conic-gradient(#ff3b30 0% 25%, #4cd964 25% 50%, #ffcc00 50% 75%, #5ac8fa 75% 100%);
-        }
-        
-        /* මැද ඇති Text එක */
-        .center-text { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            background: white; color: #333; padding: 10px 20px; border-radius: 10px;
-            font-weight: bold; font-size: 22px; z-index: 10; transition: 0.5s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 3px solid #gold;
-        }
-        .center-text.show { transform: translate(-50%, -50%) scale(1); }
+import streamlit as st
+import streamlit.components.v1 as components
 
-        .indicator { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid gold; z-index: 15; }
+# Page configuration
+st.set_page_config(page_title="20 Wheels Challenge", layout="centered")
 
-        /* Buttons */
-        .options-grid { display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .opt-btn { padding: 15px; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .opt-btn:active { transform: scale(0.95); }
-        
-        .spin-btn, .next-btn { background: #f1c40f; color: black; padding: 15px 40px; border: none; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 18px; }
-        .level-tag { font-size: 18px; color: #aaa; margin-bottom: 15px; }
-    </style>
-</head>
-<body>
+st.title("🎡 Scientist Wheel Challenge")
 
-<div class="game-box">
-    <div class="level-tag" id="level-display">Wheel 1 of 20</div>
-    
-    <div class="wheel-area">
-        <div class="indicator"></div>
-        <div id="result-text" class="center-text">NAME</div>
-        <div id="wheel" class="wheel"></div>
+# රෝද 20 සඳහා දත්ත (Data for 20 Wheels)
+if 'current_wheel' not in st.session_state:
+    st.session_state.current_wheel = 1
+
+# මෙතනට ඔයාගේ විද්‍යාඥයින් 20 දෙනාගේ නම් සහ Options දාන්න
+wheel_data = [
+    {"name": "EINSTEIN", "opts": ["NEWTON", "EINSTEIN", "TESLA", "CURIE"], "correct": 1},
+    {"name": "NEWTON", "opts": ["GALILEO", "PASTEUR", "NEWTON", "DARWIN"], "correct": 2},
+    {"name": "TESLA", "opts": ["TESLA", "EDISON", "BELL", "BOYLE"], "correct": 0},
+    # ... තව 17ක් මේ විදියටම ලැයිස්තුවට එකතු කරන්න
+]
+
+# HTML/JavaScript Code එක (Wheel Logic එක ඇතුළුව)
+html_code = f"""
+<div id="game-container" style="text-align:center; color:white; font-family:sans-serif;">
+    <h3 id="level-txt">Wheel: {st.session_state.current_wheel} / 20</h3>
+    <div style="position:relative; width:300px; height:300px; margin:auto;">
+        <div id="wheel" style="width:100%; height:100%; border-radius:50%; border:5px solid white; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#ff3b30 0% 25%, #4cd964 25% 50%, #ffcc00 50% 75%, #5ac8fa 75% 100%);"></div>
+        <div id="center-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(0); background:white; color:black; padding:10px; border-radius:10px; font-weight:bold; transition:0.5s; z-index:10;">{wheel_data[st.session_state.current_wheel-1]['name']}</div>
+        <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:20px solid gold;"></div>
     </div>
-
-    <button id="spin-btn" class="spin-btn" onclick="spinWheel()">SPIN</button>
-
-    <div id="options" class="options-grid">
-        <button class="opt-btn" style="background:#e74c3c" onclick="checkAnswer(0)"></button>
-        <button class="opt-btn" style="background:#2ecc71" onclick="checkAnswer(1)"></button>
-        <button class="opt-btn" style="background:#f39c12" onclick="checkAnswer(2)"></button>
-        <button class="opt-btn" style="background:#3498db" onclick="checkAnswer(3)"></button>
-    </div>
-
-    <button id="next-btn" class="next-btn" style="display:none; background:#2ecc71; color:white;" onclick="nextWheel()">Next Wheel →</button>
+    <br>
+    <button id="spin-btn" onclick="spin()" style="padding:10px 30px; border-radius:20px; border:none; background:gold; font-weight:bold; cursor:pointer;">SPIN WHEEL</button>
 </div>
 
 <script>
-    let currentLevel = 0;
     let rotation = 0;
-    
-    // මෙතන ඔයාට ප්‍රශ්න 20ම ලේසියෙන් දාන්න පුළුවන්
-    const gameData = [
-        { correctName: "EINSTEIN", options: ["NEWTON", "EINSTEIN", "TESLA", "CURIE"], correctIdx: 1 },
-        { correctName: "NEWTON", options: ["GALILEO", "PASTEUR", "NEWTON", "DARWIN"], correctIdx: 2 },
-        { correctName: "TESLA", options: ["TESLA", "EDISON", "BELL", "BOYLE"], correctIdx: 0 },
-        // ... මේ විදියට 20ක් දක්වා ලැයිස්තුව දික් කරන්න
-    ];
-
-    function spinWheel() {
+    function spin() {{
         document.getElementById('spin-btn').style.display = 'none';
-        document.getElementById('result-text').classList.remove('show');
+        rotation += Math.floor(2000 + Math.random() * 2000);
+        document.getElementById('wheel').style.transform = "rotate(" + rotation + "deg)";
         
-        let extraDeg = Math.floor(1800 + Math.random() * 1800); 
-        rotation += extraDeg;
-        document.getElementById('wheel').style.transform = `rotate(${rotation}deg)`;
-
-        setTimeout(() => {
-            const data = gameData[currentLevel];
-            const resultBox = document.getElementById('result-text');
-            resultBox.innerText = data.correctName;
-            resultBox.classList.add('show');
-            showOptions();
-        }, 4100);
-    }
-
-    function showOptions() {
-        const btns = document.querySelectorAll('.opt-btn');
-        const data = gameData[currentLevel];
-        btns.forEach((btn, i) => {
-            btn.innerText = data.options[i];
-        });
-        document.getElementById('options').style.display = 'grid';
-    }
-
-    function checkAnswer(idx) {
-        if(idx === gameData[currentLevel].correctIdx) {
-            alert("Correct! Well done.");
-            document.getElementById('options').style.display = 'none';
-            document.getElementById('next-btn').style.display = 'inline-block';
-        } else {
-            alert("Wrong! Try again.");
-        }
-    }
-
-    function nextWheel() {
-        currentLevel++;
-        if(currentLevel < gameData.length) {
-            document.getElementById('level-display').innerText = `Wheel ${currentLevel + 1} of 20`;
-            document.getElementById('next-btn').style.display = 'none';
-            document.getElementById('spin-btn').style.display = 'inline-block';
-            document.getElementById('result-text').classList.remove('show');
-            document.getElementById('options').style.display = 'none';
-        } else {
-            alert("Congratulations! You finished all 20 wheels.");
-            location.reload(); 
-        }
-    }
+        setTimeout(() => {{
+            document.getElementById('center-text').style.transform = "translate(-50%, -50%) scale(1)";
+            window.parent.postMessage({{type: 'wheel_stopped'}}, '*');
+        }}, 4100);
+    }}
 </script>
+"""
 
-</body>
-</html>
+# HTML එක Display කිරීම
+components.html(html_code, height=450)
+
+# Options පෙන්වීම සඳහා Streamlit Buttons
+current_data = wheel_data[st.session_state.current_wheel - 1]
+
+st.write("### Choose the Correct Name:")
+cols = st.columns(2)
+for i, opt in enumerate(current_data['opts']):
+    with cols[i % 2]:
+        if st.button(opt, key=f"btn_{st.session_state.current_wheel}_{i}"):
+            if i == current_data['correct']:
+                st.success("Correct!")
+                if st.button("Next Wheel ➡️"):
+                    if st.session_state.current_wheel < 20:
+                        st.session_state.current_wheel += 1
+                        st.rerun()
+                    else:
+                        st.balloons()
+                        st.write("Congratulations! You finished all 20!")
+            else:
+                st.error("Wrong! Try again.")
