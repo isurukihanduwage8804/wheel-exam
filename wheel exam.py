@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 # Page configurations
-st.set_page_config(page_title="isuru_wheel - විද්‍යාත්මක සොයාගැනීම්", layout="wide")
+st.set_page_config(page_title="isuru_wheel - නිපැයුම් රෝදය", layout="wide")
 
 st.markdown("""
     <style>
@@ -18,7 +18,7 @@ html_code = """
     <style>
         body { background: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; font-family: sans-serif; }
         .game-container { position: relative; text-align: center; width: 600px; }
-        .title { color: gold; font-size: 28px; font-weight: bold; margin-bottom: 10px; text-shadow: 2px 2px 10px rgba(255,215,0,0.5); }
+        .title { color: gold; font-size: 32px; font-weight: bold; margin-bottom: 10px; text-shadow: 2px 2px 10px rgba(255,215,0,0.5); }
         
         .wheel-box { position: relative; width: 360px; height: 360px; margin: auto; transition: transform 0.8s ease-in-out; }
         .wheel {
@@ -32,7 +32,8 @@ html_code = """
             border-top: 40px solid gold; z-index: 100;
         }
 
-        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 20px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 220px; text-align: center; }
+        /* රෝදය මැද පෙනෙන කොටස */
+        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 22px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 220px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .center-text.active { transform: translate(-50%, -50%) scale(1); }
 
         .options-grid { display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
@@ -42,7 +43,6 @@ html_code = """
         .spin-btn { background: gold; color: black; }
         .next-btn { background: #4cd964; color: white; display: none; }
 
-        /* වම් පැත්තේ යටට මාරු කළ පණිවිඩ පුවරුව (Bottom Left) */
         #msg-popup {
             position: fixed; bottom: 20px; left: 20px; 
             padding: 15px 30px; border-radius: 15px; font-size: 22px; font-weight: bold;
@@ -59,8 +59,8 @@ html_code = """
 <div id="msg-popup"></div>
 
 <div class="game-container">
-    <div class="title">ISURU'S DISCOVERY WHEEL</div>
-    <div style="font-size: 18px; color: #aaa; margin-bottom: 20px;">රෝදය <span id="cur-lvl">1</span> / 20</div>
+    <div class="title">ඉසුරුගේ නිපැයුම් රෝදය</div>
+    <div style="font-size: 18px; color: #aaa; margin-bottom: 20px;">ප්‍රශ්නය <span id="cur-lvl">1</span> / 20</div>
     
     <div id="wheel-wrapper" class="wheel-box">
         <div class="pointer"></div>
@@ -68,7 +68,7 @@ html_code = """
         <div id="name-display" class="center-text"></div>
     </div>
     
-    <button id="spin-btn" class="spin-btn" onclick="spinWheel()">රෝදය කරකවන්න</button>
+    <button id="spin-btn" class="spin-btn" onclick="spinWheel()">නිපැයුම් රෝදය කරකවන්න</button>
     
     <div id="options" class="options-grid">
         <button class="opt-btn" style="background:#e74c3c" onclick="checkAnswer(0)"></button>
@@ -77,7 +77,7 @@ html_code = """
         <button class="opt-btn" style="background:#3498db" onclick="checkAnswer(3)"></button>
     </div>
 
-    <button id="next-btn" class="next-btn" onclick="nextLevel()">මීළඟ රෝදය →</button>
+    <button id="next-btn" class="next-btn" onclick="nextLevel()">මීළඟ ප්‍රශ්නය →</button>
 </div>
 
 <div class="score-board">ලකුණු: <span id="score">0</span></div>
