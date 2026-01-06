@@ -19,38 +19,40 @@ html_code = """
         .game-container { position: relative; text-align: center; width: 600px; }
         .wheel-box { position: relative; width: 380px; height: 380px; margin: auto; transition: transform 0.8s ease-in-out; }
         .wheel {
-            width: 100%; height: 100%; border-radius: 50%; border: 8px solid gold;
+            width: 100%; height: 100%; border-radius: 50%; border: 8px solid white;
             transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
             background: conic-gradient(#ff3b30 0deg 45deg, #4cd964 45deg 90deg, #ffcc00 90deg 135deg, #5ac8fa 135deg 180deg, #ff9500 180deg 225deg, #af52de 225deg 270deg, #5856d6 270deg 315deg, #ff2d55 315deg 360deg);
+            box-shadow: 0 0 30px rgba(255,255,255,0.1);
         }
-        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 35px solid gold; z-index: 30; }
-        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 20px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 250px; text-align: center; }
+
+        /* ඊතලය රෝදය දෙසට හැරවීම (Pointer pointing down towards wheel) */
+        .pointer { 
+            position: absolute; 
+            top: -30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 0; height: 0; 
+            border-left: 20px solid transparent; 
+            border-right: 20px solid transparent; 
+            border-top: 40px solid gold; /* මෙතැනදී border-top පාවිච්චි කර ඊතලය පහළට හැරෙව්වා */
+            z-index: 100;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+        }
+
+        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 20px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 250px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .center-text.active { transform: translate(-50%, -50%) scale(1); }
         .options-grid { display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        .opt-btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .spin-btn, .next-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin-top: 20px; }
+        .opt-btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+        .opt-btn:active { transform: translateY(4px); box-shadow: none; }
+        .spin-btn, .next-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(255,215,0,0.3); }
         .spin-btn { background: gold; color: black; }
         .next-btn { background: #4cd964; color: white; display: none; }
-        
-        /* දකුණු පැත්තේ යටින් ඇති Score Board එක */
-        .score-board {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255, 215, 0, 0.2);
-            padding: 10px 20px;
-            border-radius: 15px;
-            border: 2px solid gold;
-            font-size: 24px;
-            font-weight: bold;
-            color: gold;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-        }
+        .score-board { position: fixed; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.7); padding: 10px 20px; border-radius: 15px; border: 2px solid gold; font-size: 24px; font-weight: bold; color: gold; }
     </style>
 </head>
 <body>
 <div class="game-container">
-    <div style="font-size: 20px; color: gold; margin-bottom: 15px;">රෝදය <span id="cur-lvl">1</span> / 20</div>
+    <div style="font-size: 20px; color: gold; margin-bottom: 25px;">රෝදය <span id="cur-lvl">1</span> / 20</div>
     <div id="wheel-wrapper" class="wheel-box">
         <div class="pointer"></div>
         <div id="wheel" class="wheel"></div>
@@ -65,20 +67,18 @@ html_code = """
     </div>
     <button id="next-btn" class="next-btn" onclick="nextLevel()">මීළඟ රෝදය →</button>
 </div>
-
 <div class="score-board">ලකුණු: <span id="score">0</span></div>
 
 <script>
     let rotation = 0;
     let currentLevel = 0;
     let totalScore = 0;
-
     const gameData = [
         { inv: "රූපවාහිනිය", opts: ["ග්‍රැහැම් බෙල්", "ජෝන් ලොගී බෙයාර්ඩ්", "තෝමස් එඩිසන්", "නිකොලා ටෙස්ලා"], correct: 1 },
-        { inv: "දුරකථනය", opts: ["අයිසැක් නිව්ටන්", "ඇල්බට් අයින්ස්ටයින්", "ඇලෙක්සැන්ඩර් ග්‍රැහැම් බෙල්", "ගැලීලියෝ"], correct: 2 },
+        { inv: "දුරකථනය", opts: ["අයිසැක් නිව්ටන්", "ඇල්බට් අයින්ස්ටයින්", "ග්‍රැහැම් බෙල්", "ගැලීලියෝ"], correct: 2 },
         { inv: "විදුලි බුබුල", opts: ["තෝමස් එඩිසන්", "නිකොලා ටෙස්ලා", "මයිකල් ෆැරඩේ", "නීල්ස් බෝර්"], correct: 0 },
         { inv: "පෙනිසිලින්", opts: ["ලුවී පාස්චර්", "ඇලෙක්සැන්ඩර් ෆ්ලෙමින්", "මාරි කියුරි", "චාල්ස් ඩාවින්"], correct: 1 },
-        { inv: "ගුවන් විදුලිය (Radio)", opts: ["මාකෝනි", "එඩිසන්", "ජේ.සී. බෝස්", "හර්ට්ස්"], correct: 0 },
+        { inv: "ගුවන් විදුලිය", opts: ["මාකෝනි", "එඩිසන්", "ජේ.සී. බෝස්", "හර්ට්ස්"], correct: 0 },
         { inv: "ගුවන් යානය", opts: ["හෙන්රි ෆෝඩ්", "රයිට් සහෝදරයෝ", "ඩා වින්චි", "ටෙස්ලා"], correct: 1 },
         { inv: "වාෂ්ප එන්ජිම", opts: ["ජේම්ස් වොට්", "නිව්ටන්", "ස්ටීවන්සන්", "ඩීසල්"], correct: 0 },
         { inv: "ගුරුත්වාකර්ෂණය", opts: ["අයින්ස්ටයින්", "නිව්ටන්", "හෝකින්", "කෙප්ලර්"], correct: 1 },
