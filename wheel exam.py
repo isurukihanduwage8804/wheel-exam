@@ -21,37 +21,46 @@ html_code = """
         .title { color: gold; font-size: 32px; font-weight: bold; margin-bottom: 10px; text-shadow: 2px 2px 10px rgba(255,215,0,0.5); }
         
         .wheel-box { position: relative; width: 360px; height: 360px; margin: auto; transition: transform 0.8s ease-in-out; }
+        
+        /* රෝදයේ පාට වෙන් කරන ඉරි තද කළු සහ මහතට සකස් කර ඇත */
         .wheel {
-            width: 100%; height: 100%; border-radius: 50%; border: 8px solid white;
+            width: 100%; height: 100%; border-radius: 50%; 
+            border: 10px solid #000; /* පිටත දාරය තද කළු */
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
             transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
-            background: conic-gradient(#ff3b30 0deg 45deg, #4cd964 45deg 90deg, #ffcc00 90deg 135deg, #5ac8fa 135deg 180deg, #ff9500 180deg 225deg, #af52de 225deg 270deg, #5856d6 270deg 315deg, #ff2d55 315deg 360deg);
+            background: 
+                repeating-conic-gradient(from 0deg, 
+                #000 0deg 2deg, 
+                transparent 2deg 45deg),
+                conic-gradient(#ff3b30 0deg 45deg, #4cd964 45deg 90deg, #ffcc00 90deg 135deg, #5ac8fa 135deg 180deg, #ff9500 180deg 225deg, #af52de 225deg 270deg, #5856d6 270deg 315deg, #ff2d55 315deg 360deg);
         }
+        
         .pointer { 
             position: absolute; top: -25px; left: 50%; transform: translateX(-50%); 
             width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; 
             border-top: 40px solid gold; z-index: 100;
         }
 
-        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 22px; z-index: 20; transition: 0.5s; border: 4px solid gold; width: 220px; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); background: white; color: black; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 22px; z-index: 20; transition: 0.5s; border: 6px solid #000; width: 220px; text-align: center; }
         .center-text.active { transform: translate(-50%, -50%) scale(1); }
 
         .options-grid { display: none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
-        .opt-btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .opt-btn { padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; box-shadow: 0 4px #000; }
+        .opt-btn:active { transform: translateY(2px); box-shadow: 0 2px #000; }
         
-        .spin-btn, .next-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin-top: 20px; }
+        .spin-btn, .next-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin-top: 20px; box-shadow: 0 5px #c5a000; }
         .spin-btn { background: gold; color: black; }
         .next-btn { background: #4cd964; color: white; display: none; }
 
-        /* වම් පැත්තේ යටින් එන Notification Popup */
         #msg-popup {
             position: fixed; bottom: 20px; left: 20px; 
             padding: 15px 30px; border-radius: 15px; font-size: 22px; font-weight: bold;
             z-index: 1000; transform: translateY(100px); transition: 0.4s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 3px solid #000;
         }
         #msg-popup.show { transform: translateY(0); }
 
-        .score-board { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 15px; border: 2px solid gold; font-size: 24px; color: gold; font-weight: bold; }
+        .score-board { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 15px; border: 3px solid gold; font-size: 24px; color: gold; font-weight: bold; }
     </style>
 </head>
 <body>
